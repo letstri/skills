@@ -15,10 +15,10 @@ npx skills add letstri/skills --list     # list without installing
 
 ## Skills
 
-| Skill | Use it when |
+| Skill | What it does |
 | --- | --- |
-| [`cleanup`](skills/cleanup/SKILL.md) | Manual (`/cleanup`), before opening or updating a PR: shrinks the branch's diff without changing behaviour — reuses what the stack already provides, deletes dead code and indirection, one subject per file, warning-only comments; repeats until a pass stops paying. |
-| [`user-behavior-qa`](skills/user-behavior-qa/SKILL.md) | Asked for QA, a smoke test or to "click through it like a user": tests the running app only through its visible browser UI and reports what works, what's broken and what went untested. |
+| [`cleanup`](skills/cleanup/SKILL.md) | Shrink a branch's diff before a PR without changing behaviour |
+| [`user-behavior-qa`](skills/user-behavior-qa/SKILL.md) | QA the running app through its browser UI, like a real user |
 
 ## Adding a skill
 

@@ -1,6 +1,6 @@
 ---
 name: cleanup
-description: Manual-only (/cleanup). Shrinks a diff without changing what it does — maps the project's stack and replaces hand-rolled code with what a built-in, project helper, shared component or installed dependency already provides, deletes code that carries no logic (tool-assisted: knip, jscpd, unused-locals), collapses duplication and indirection, splits files that hold more than one subject, strips comments that are not warnings, and fixes bugs the pass surfaces; repeats until a pass stops paying and fans out to parallel subagents per module on large diffs. Targets the current branch's diff (its open PR's base, else the default branch) plus uncommitted work; an argument (ref or path) overrides. Works in any repo.
+description: Manual-only (/cleanup). Shrinks the current branch's diff without changing behaviour — reuses what the stack already provides, deletes dead code and indirection, splits files by subject, strips non-warning comments. Works in any repo.
 disable-model-invocation: true
 ---
 
