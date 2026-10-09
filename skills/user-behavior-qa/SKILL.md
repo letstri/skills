@@ -16,7 +16,8 @@ Defaults, unless the developer or the repo docs say otherwise:
 
 - **Target:** the local dev URL — the worktree's own when testing a branch.
 - **Mutations:** create, edit and delete test data on local dev. Any other environment, or an unclear one, is read-only.
-- **Browser:** pages behind auth need the user's own signed-in browser (e.g. Claude in Chrome), since entering credentials is not an agent's to do. Public pages can use a standalone automation browser (agent-browser, Playwright). When the user is watching, say which one you intend to use and let them redirect you.
+- **Browser:** the user's own browser (e.g. Claude in Chrome).
+- **Auth:** if the app shows a sign-in wall, stop and let the user choose: they sign in themselves in the opened tab and say when done, or they give you credentials (ideally a test account) and you enter them in the sign-in form.
 
 Only ask about what is still missing, in one message: the pages, workflows, entities, variants (platforms, engines, plans) and roles in scope, and the expected behavior or baseline. If the invocation already covers these, do not ask. State the test charter in one sentence and start.
 
@@ -26,7 +27,7 @@ Only ask about what is still missing, in one message: the pages, workflows, enti
 - Use ordinary clicks, typing, keyboard navigation, and visible menus. Never call internal endpoints, inject application state, edit storage, or mutate the DOM to manufacture a result.
 - Use browser evaluation only to read the rendered page or activate the same visible control when normal browser references fail.
 - Use a recognizable test prefix such as `qa_<feature>_<purpose>` and record every artifact created.
-- Do not enter credentials. If authentication is required, ask the developer to provide an authenticated browser session.
+- Enter only credentials the user gave you for this run, only into the target app's own sign-in form. Never guess, reuse or look up credentials, and never write them into the report or test artifacts.
 - Treat production or unclear environments as read-only until the developer explicitly allows mutations.
 - Continue past isolated failures when another path remains testable. Do not repair the application during the review.
 
