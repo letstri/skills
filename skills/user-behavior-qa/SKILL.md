@@ -1,6 +1,7 @@
 ---
 name: user-behavior-qa
-description: Test the running app through its visible browser UI as a real user. Use when a developer asks for QA, a smoke test, user journey testing, to click through a feature or test it like a user, or wants a list of user-visible gaps without inspecting implementation code.
+description: Manual-only (/user-behavior-qa). Tests the running app through its visible browser UI as a real user — journeys, states, validation, keyboard — and reports what works, what's broken and what went untested, without reading implementation code. Works in any repo.
+disable-model-invocation: true
 ---
 
 # User Behavior QA
