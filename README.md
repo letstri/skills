@@ -17,7 +17,7 @@ npx skills add letstri/skills --list     # list without installing
 
 | Skill | What it does |
 | --- | --- |
-| [`cleanup`](skills/cleanup/SKILL.md) | Shrink a branch's diff before a PR without changing behaviour |
+| [`cleanup`](skills/cleanup/SKILL.md) | Shrink a branch's diff without changing behaviour |
 | [`user-behavior-qa`](skills/user-behavior-qa/SKILL.md) | QA the running app through its browser UI, like a real user |
 
 ## Adding a skill
