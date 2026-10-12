@@ -1,9 +1,9 @@
 ---
-name: pr-triage
+name: pr-mark-viewed
 description: Speed up a GitHub PR review — sort every changed file into trivial / skim / review, mark the trivial ones as viewed on GitHub, and hand back a reading order for the rest. Use when the user shares a PR link or number and asks to pre-scan it, mark the easy files as viewed, or triage it before they review.
 ---
 
-# PR triage
+# Mark PR files as viewed
 
 Take the trivial files off the reviewer's plate so they only read what matters. Marking a file as viewed is the only thing this skill writes to GitHub. Never approve, comment, or request changes.
 
