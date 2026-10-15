@@ -1,7 +1,6 @@
 ---
 name: cleanup
-description: Manual-only (/cleanup). Shrinks the current branch's diff without changing behaviour — reuses what the stack already provides, deletes dead code and indirection, splits files by subject, strips non-warning comments. Works in any repo.
-disable-model-invocation: true
+description: Shrinks the current branch's diff without changing behaviour: reuses what the stack already provides, deletes dead code and indirection, splits files by subject, strips non-warning comments. Use when asked to clean up, simplify, shrink or tidy a branch, diff or PR before review or merge. Works in any repo.
 ---
 
 # Cleanup
