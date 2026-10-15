@@ -1,6 +1,6 @@
 ---
 name: cleanup
-description: Shrinks the current branch's diff without changing behaviour: reuses what the stack already provides, deletes dead code and indirection, splits files by subject, strips non-warning comments. Use when asked to clean up, simplify, shrink or tidy a branch, diff or PR before review or merge. Works in any repo.
+description: Shrinks the current branch's diff without changing behaviour. Reuses what the stack already provides, deletes dead code and indirection, splits files by subject, strips non-warning comments. Use when asked to clean up, simplify, shrink or tidy a branch, diff or PR before review or merge. Works in any repo.
 ---
 
 # Cleanup
