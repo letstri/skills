@@ -31,6 +31,8 @@ gh api graphql --paginate -f owner=<owner> -f repo=<repo> -F n=<n> \
 
 `DISMISSED` means the reviewer viewed the file and a later push changed it.
 
+**Judge a re-pushed file by what changed since the view, not by the whole PR diff.** When the user scopes the request to commits ("the last 3 commits", "since my review"), classify each file by `git diff <commit before the range> HEAD -- <path>` only, and leave files the range doesn't touch alone. A `DISMISSED` file's older content was already read, so judge it by the commits pushed since. GitHub doesn't say which commit the reviewer saw, so ask for the range when the user doesn't name one. Leave out a file that commits just before the range also changed, unless the user says they saw those.
+
 ## 2. Classify
 
 **Trivial: mark as viewed.** Every hunk has to be one of these, and nothing else can change behavior or a contract:
@@ -45,6 +47,14 @@ gh api graphql --paginate -f owner=<owner> -f repo=<repo> -F n=<n> \
 - every hunk is one of those swaps, or one of the trivial kinds above. One file can contain several different swaps.
 - you read the source and confirmed that each new id or call behaves like the old one it replaced, including any options the call site still passes. Check the source entry's own flags too, such as a platform gate, an availability check or a default. A swap onto an entry that adds a gate changes where the call site works, so it goes in review.
 - a loop of old calls replaced by one batched call does exactly what the loop did. If the batch differs, for example in ordering or in which item ends up selected, the file goes in review and the report names the difference.
+
+**A sweep is checked mechanically.** When a commit renames symbols or swaps a call across dozens of files, don't read each file by eye. Build the `old → new` map from the declarations the commit changes, run every removed line through it, and compare the result with the added lines after dropping whitespace, line rewraps, trailing commas and the order of import specifiers. Then widen the check only by what the sweep actually did:
+- a line a sorter moved, such as an object key or import specifier that a lint autofix reordered after its rename, counts when the moved lines match as a set
+- a repo symbol that shares its name with a built-in (`valueOf`, `indexOf`) is mapped where the repo declares it, bare or on the repo's own object, and left alone on built-in calls. Dropping the name from the map instead falsely rejects every file that uses it.
+- a call wrapped in a converter the sweep introduced (`f(x)` → `f(convert(x))`), plus the converter's import, once you've read the converter. This is the follows rule applied mechanically.
+- a field renamed together with every reader of it
+
+Spot-check a few accepted files and the smallest rejected ones by eye. A rejected file with a tiny diff usually means the map is missing a case, not that the file holds a real change.
 
 If a call site changes behavior, such as a different value, scope or default, or does anything beyond the swap, it goes in review. A file that is all swaps plus one small real change, such as an added `aria-label`, goes in skim with the note "rest follows `<source>`", so the reviewer reads only the extra change.
 
@@ -65,7 +75,7 @@ If you're unsure, the file is not trivial. A wrongly marked file hides code from
 
 First check that `gh pr view <n> -R <owner/repo> --json headRefOid` still matches the SHA from step 1. If it changed, the author pushed after you read the diff, so fetch again and reclassify before marking anything.
 
-Write the paths to mark one per line in `marked.txt`, then mark them all in one request with one aliased mutation per path. Paths go in as variables, so `$` and quotes in them are safe:
+Write the paths to mark one per line in `marked.txt`, then mark them with one aliased mutation per path, one request per batch of up to 40. Paths go in as variables, so `$` and quotes in them are safe:
 
 ```sh
 jq -n --arg id <PR node id> --rawfile paths marked.txt '
@@ -79,6 +89,8 @@ jq -n --arg id <PR node id> --rawfile paths marked.txt '
 ```
 
 Each alias `m<i>` in `data` is the path on line `i` (counting from 0). A path that failed shows up in `errors`, and you report it. If the viewer has already marked a file, marking it again does nothing.
+
+GitHub refuses one request past about 50 aliases: the rest come back `null` with `RESOURCE_LIMITS_EXCEEDED`. Send batches of 40 (`split -l 40 marked.txt batch_`, then run the command per batch) and retry any alias that failed. Afterwards fetch `viewerViewedState` again and confirm every marked path reads `VIEWED`.
 
 ## 4. Report
 
