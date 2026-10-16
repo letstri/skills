@@ -15,11 +15,14 @@ Defaults, unless the developer or the repo docs say otherwise:
 
 - **Target:** the local dev URL — the worktree's own when testing a branch.
 - **Mutations:** create, edit and delete test data on local dev. Any other environment, or an unclear one, is read-only.
-- **Auth:** if the app shows a sign-in wall, stop and let the user choose: they sign in themselves in the opened tab and say when done, or they give you credentials (ideally a test account) and you enter them in the sign-in form.
 
-**Ask which browser to use before the first browser action**, every run, unless the developer named one in this request. Offer only the browsers this session can actually drive, each with its trade-off: the developer's own browser (their sign-ins, but it shares storage with their tabs), a built-in or embedded browser, or a separate automation browser (isolated and signed out). Repo docs that recommend a browser make it the suggested option, not the answer. Wait for the choice; never pick one silently.
+Then send **one message** with every open question, and wait for the answer before the first browser action:
 
-Ask about anything else still missing in the same message: the pages, workflows, entities, variants (platforms, engines, plans) and roles in scope, and the expected behavior or baseline. If the invocation already covers these, do not ask. State the test charter in one sentence and start.
+- **Browser**, every run, unless the developer named one in this request. Offer only the browsers this session can actually drive, each with its trade-off: the developer's own browser (their sign-ins, but it shares storage with their tabs), a built-in or embedded browser, or a separate automation browser (isolated and signed out). Repo docs that recommend a browser make it the suggested option, not the answer. Never pick one silently.
+- **Sign-in**, when the app or its docs show it needs one and the chosen browser is not already signed in: the developer signs in themselves in the opened tab and says when done, or gives you credentials (ideally a test account) that you enter in the sign-in form.
+- **Scope**, only what the request leaves open: the pages, workflows, entities, variants (platforms, engines, plans) and roles in scope, and the expected behavior or baseline.
+
+If a sign-in wall appears that intake did not foresee, stop and ask the sign-in question then. Once answered, state the test charter in one sentence and start.
 
 ## 2. Operate like a user
 
@@ -54,6 +57,7 @@ A page is complete when every applicable step above has either been observed or 
 - Before reporting that a control does not respond or an animation is stuck, rule out the browser traps below.
 - A gap the repo's docs describe as deliberate is not a finding.
 - Quote exact labels and errors when they identify the problem.
+- Capture a screenshot of each broken step when the chosen browser supports it, and reference it in the finding.
 - Separate defects, missing capabilities, intentional unsupported states, and untested paths.
 - Do not infer implementation causes.
 - Do not label a platform- or vendor-native limitation as an application defect. State the visible limitation and its effect.
@@ -61,15 +65,24 @@ A page is complete when every applicable step above has either been observed or 
 
 **Browser traps** — each one looks like an app bug and is not:
 
-- **A background tab is frozen.** An automated tab behind another window has `visibilityState: hidden`: `requestAnimationFrame` never runs, so animations and transitions stop mid-way, rAF-scheduled popups stay shut, and global hotkeys do nothing. Check the tab's visibility before calling a control broken.
-- **The user's browser shares storage with their own tab.** Preferences changed in the automated tab (pane sizes, theme, filters) change theirs on the same origin.
-- **The dev server reloads mid-session.** A first-time chunk load can make the bundler re-optimize dependencies and crash or reload the page. Navigate to the same URL once and continue; report it only if it repeats.
-
-When done, restore any preferences you changed, close the tabs you opened, and ask the developer to reload their own tab.
+- **Any browser: the dev server reloads mid-session.** A first-time chunk load can make the bundler re-optimize dependencies and crash or reload the page. Navigate to the same URL once and continue; report it only if it repeats.
+- **The developer's own browser: a background tab is frozen.** An automated tab behind another window has `visibilityState: hidden`: `requestAnimationFrame` never runs, so animations and transitions stop mid-way, rAF-scheduled popups stay shut, and global hotkeys do nothing. Check the tab's visibility before calling a control broken.
+- **The developer's own browser: storage is shared with their tabs.** Preferences changed in the automated tab (pane sizes, theme, filters) change theirs on the same origin.
+- **An isolated browser: it starts signed out and empty.** A missing preference, onboarding screen or empty list may be the fresh profile, not a regression.
 
 ## 5. Report
 
+Before writing it, wrap up: restore any preferences you changed, close the tabs you opened, and in the developer's own browser ask them to reload their tab.
+
 Return a concise report with:
+
+### Summary
+
+One line of counts: journeys tested, working, broken, untested; then findings by severity.
+
+- **Blocker**: the journey cannot be completed.
+- **Major**: the journey completes, but a step is wrong, lost or misleading.
+- **Minor**: wording, layout, focus or polish that does not change the outcome.
 
 ### Tested
 
@@ -86,9 +99,10 @@ For each finding include:
 - page or workflow;
 - short reproduction path;
 - observed result;
-- expected user-facing result or practical impact.
+- expected user-facing result or practical impact;
+- severity, and the screenshot when one was taken.
 
-Order findings by how strongly they block the journey.
+Order findings by severity, blockers first.
 
 ### Untested and cleanup
 
