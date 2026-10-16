@@ -15,10 +15,11 @@ Defaults, unless the developer or the repo docs say otherwise:
 
 - **Target:** the local dev URL — the worktree's own when testing a branch.
 - **Mutations:** create, edit and delete test data on local dev. Any other environment, or an unclear one, is read-only.
-- **Browser:** the user's own browser (e.g. Claude in Chrome).
 - **Auth:** if the app shows a sign-in wall, stop and let the user choose: they sign in themselves in the opened tab and say when done, or they give you credentials (ideally a test account) and you enter them in the sign-in form.
 
-Only ask about what is still missing, in one message: the pages, workflows, entities, variants (platforms, engines, plans) and roles in scope, and the expected behavior or baseline. If the invocation already covers these, do not ask. State the test charter in one sentence and start.
+**Ask which browser to use before the first browser action**, every run, unless the developer named one in this request. Offer only the browsers this session can actually drive, each with its trade-off: the developer's own browser (their sign-ins, but it shares storage with their tabs), a built-in or embedded browser, or a separate automation browser (isolated and signed out). Repo docs that recommend a browser make it the suggested option, not the answer. Wait for the choice; never pick one silently.
+
+Ask about anything else still missing in the same message: the pages, workflows, entities, variants (platforms, engines, plans) and roles in scope, and the expected behavior or baseline. If the invocation already covers these, do not ask. State the test charter in one sentence and start.
 
 ## 2. Operate like a user
 
