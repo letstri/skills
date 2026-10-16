@@ -51,8 +51,9 @@ gh api graphql --paginate -f owner=<owner> -f repo=<repo> -F n=<n> \
 **A sweep is checked mechanically.** When a commit renames symbols or swaps a call across dozens of files, don't read each file by eye. Build the `old → new` map from the declarations the commit changes, run every removed line through it, and compare the result with the added lines after dropping whitespace, line rewraps, trailing commas and the order of import specifiers. Then widen the check only by what the sweep actually did:
 - a line a sorter moved, such as an object key or import specifier that a lint autofix reordered after its rename, counts when the moved lines match as a set
 - a repo symbol that shares its name with a built-in (`valueOf`, `indexOf`) is mapped where the repo declares it, bare or on the repo's own object, and left alone on built-in calls. Dropping the name from the map instead falsely rejects every file that uses it.
-- a call wrapped in a converter the sweep introduced (`f(x)` → `f(convert(x))`), plus the converter's import, once you've read the converter. This is the follows rule applied mechanically.
+- a call wrapped in a converter the sweep introduced (`f(x)` → `f(convert(x))`), plus the converter's import, once you've read the converter. This is the follows rule applied mechanically. Count it the same way when the file hoists the converted value into one local (`const y = convert(x)`) and uses `y` where it used to write `convert(x)` or `x`. A converter on both sides of a comparison (`a === b` → `convert(a) === convert(b)`) changes what counts as equal, so that file goes in review.
 - a field renamed together with every reader of it
+- one old name that the sweep split into two new ones by role: try each mapping per file and accept the file when one of them matches
 
 Spot-check a few accepted files and the smallest rejected ones by eye. A rejected file with a tiny diff usually means the map is missing a case, not that the file holds a real change.
 
