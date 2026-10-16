@@ -5,7 +5,7 @@ description: Shrinks the current branch's diff without changing behaviour. Reuse
 
 # Cleanup
 
-Make the branch's diff as small as it can be **while every observable behaviour stays identical**. The bar is not "tidier" — it is "could this be written in half the lines with what the project already has?" The only behaviour change allowed is a real bug found on the way, reported as one.
+Make the branch's diff as small as it can be **while every observable behaviour stays identical**. The bar is not "tidier"; it is "could this be written in half the lines with what the project already has?" The only behaviour change allowed is a real bug found on the way, reported as one.
 
 Everything here is a rule, not a recipe. Apply each one with the project's own languages, tools and conventions: the project's instructions decide how, this skill decides what.
 
@@ -26,7 +26,7 @@ The work runs in three phases: **Prepare** what may be cut, **Cut** it by follow
 - **Record the starting size** of the diff (files, lines added, lines removed). It is the number to beat and the "before" column of the summary.
 - **Baseline the checks.** Run the project's typecheck, tests and lint before any edit and note what already fails, so a later failure can be attributed.
 - **Know who else writes to the working tree.** Other sessions, agents or tools may share the checkout. Watch for edits you did not make for the whole run, stay out of files someone else is changing, and never commit, revert or stash work that is not yours.
-- **Write a behaviour ledger**: each thing the branch makes the program do — outputs, side effects, error paths, UI and keyboard states, and the platforms and runtime versions it promises to support. Every cut is checked against it.
+- **Write a behaviour ledger**: each thing the branch makes the program do: outputs, side effects, error paths, UI and keyboard states, and the platforms and runtime versions it promises to support. Every cut is checked against it.
 
 ### Inventory
 
@@ -34,7 +34,7 @@ Code is only shorter if you know what you may reuse. Build an **inventory**, one
 
 - **The project's own stack map**, if its rules have one. It is the starting inventory and outranks anything discovered.
 - **Dependencies per workspace**: what each workspace containing a changed file declares. Only those resolve in that file; a sibling workspace's dependency is a proposal, not a reuse.
-- **The project's own toolbox**: its shared utilities, hooks, services and UI components with their variants — by name, not just by location.
+- **The project's own toolbox**: its shared utilities, hooks, services and UI components with their variants, by name, not just by location.
 - **Options of what the diff already uses**: for each dependency the changed files import, read the **installed** version's types or docs for options and helpers that replace surrounding code, and note the lowest runtime or platform version each one needs. Memory describes some other version.
 
 ### Scan

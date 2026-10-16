@@ -12,7 +12,7 @@ Read every file in scope whole before the first edit.
 
 ## 1. Replace with what exists
 
-Walk every hand-written mechanism — an effect, loop, parser, state sync, cache, retry, listener, formatter, validation, cast, conditional styling, block of markup — and ask what already owns it, in this order:
+Walk every hand-written mechanism (an effect, loop, parser, state sync, cache, retry, listener, formatter, validation, cast, conditional styling, block of markup) and ask what already owns it, in this order:
 
 1. A language or runtime built-in.
 2. The project's own helper.

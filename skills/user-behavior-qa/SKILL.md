@@ -13,7 +13,7 @@ Before the first browser action, read what the repo says about running and openi
 
 Defaults, unless the developer or the repo docs say otherwise:
 
-- **Target:** the local dev URL — the worktree's own when testing a branch.
+- **Target:** the local dev URL, the worktree's own when testing a branch.
 - **Mutations:** create, edit and delete test data on local dev. Any other environment, or an unclear one, is read-only.
 
 Then send **one message** with every open question, and wait for the answer before the first browser action:
@@ -63,7 +63,7 @@ A page is complete when every applicable step above has either been observed or 
 - Do not label a platform- or vendor-native limitation as an application defect. State the visible limitation and its effect.
 - Preserve useful test artifacts unless cleanup was requested. Always list the `qa_*` artifacts left behind, and name any that cannot be removed through the UI.
 
-**Browser traps** — each one looks like an app bug and is not:
+**Browser traps.** Each one looks like an app bug and is not:
 
 - **Any browser: the dev server reloads mid-session.** A first-time chunk load can make the bundler re-optimize dependencies and crash or reload the page. Navigate to the same URL once and continue; report it only if it repeats.
 - **The developer's own browser: a background tab is frozen.** An automated tab behind another window has `visibilityState: hidden`: `requestAnimationFrame` never runs, so animations and transitions stop mid-way, rAF-scheduled popups stay shut, and global hotkeys do nothing. Check the tab's visibility before calling a control broken.
