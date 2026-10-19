@@ -15,10 +15,11 @@ Defaults, unless the developer or the repo docs say otherwise:
 
 - **Target:** the local dev URL, the worktree's own when testing a branch.
 - **Mutations:** create, edit and delete test data on local dev. Any other environment, or an unclear one, is read-only.
+- **Screenshots:** every run saves them as files into one folder, `~/qa-screenshots/<repo>-<branch or feature>-<YYYY-MM-DD>/`, created before the first browser action. A rerun on the same day adds a `-2`, `-3` suffix instead of overwriting.
 
 Then send **one message** with every open question, and wait for the answer before the first browser action:
 
-- **Browser**, every run, unless the developer named one in this request. Offer only the browsers this session can actually drive, each with its trade-off: the developer's own browser (their sign-ins, but it shares storage with their tabs), a built-in or embedded browser, or a separate automation browser (isolated and signed out). Repo docs that recommend a browser make it the suggested option, not the answer. Never pick one silently.
+- **Browser**, every run, unless the developer named one in this request. Offer only the browsers this session can actually drive, each with its trade-off, including whether it can save a screenshot to a file: the developer's own browser (their sign-ins, but it shares storage with their tabs), a built-in or embedded browser, or a separate automation browser (isolated and signed out). Repo docs that recommend a browser make it the suggested option, not the answer. Never pick one silently.
 - **Sign-in**, when the app or its docs show it needs one and the chosen browser is not already signed in: the developer signs in themselves in the opened tab and says when done, or gives you credentials (ideally a test account) that you enter in the sign-in form.
 - **Scope**, only what the request leaves open: the pages, workflows, entities, variants (platforms, engines, plans) and roles in scope, and the expected behavior or baseline.
 
@@ -46,6 +47,7 @@ Discover available surfaces from the UI itself. For every page or workflow in sc
 6. Open the created item and verify the detail or edit view reflects what was submitted.
 7. Test visible lifecycle actions such as edit, enable or disable, revoke, and delete when offered.
 8. Check labels, instructions, default values, disabled and loading states, focus, keyboard use, and accessible names while following the journey.
+9. Screenshot every verified outcome as you reach it: each state, the success feedback, the created row, the detail view, each lifecycle result. A step counts as working only with its screenshot in the folder.
 
 Use the smallest starter state that unlocks the workflow. If one created record supports several tests, reuse it.
 
@@ -57,7 +59,8 @@ A page is complete when every applicable step above has either been observed or 
 - Before reporting that a control does not respond or an animation is stuck, rule out the browser traps below.
 - A gap the repo's docs describe as deliberate is not a finding.
 - Quote exact labels and errors when they identify the problem.
-- Capture a screenshot of each broken step when the chosen browser supports it, and reference it in the finding.
+- **Screenshots go to the run folder from §1, nowhere else.** Name them in journey order, `NN-<page>-<what it shows>.png` for a working step and `NN-<page>-broken-<what>.png` for a broken one, e.g. `03-cashbacks-filter-by-status.png`. Save through the browser tool's own file option; if it only returns the image inline, save it with an OS screenshot of the browser window. A step whose screenshot could not be saved is reported as such, not silently skipped.
+- Never screenshot a typed password or other secret. Screenshots are kept after the run; they are not test artifacts to clean up.
 - Separate defects, missing capabilities, intentional unsupported states, and untested paths.
 - Do not infer implementation causes.
 - Do not label a platform- or vendor-native limitation as an application defect. State the visible limitation and its effect.
@@ -74,7 +77,7 @@ A page is complete when every applicable step above has either been observed or 
 
 Before writing it, wrap up: restore any preferences you changed, close the tabs you opened, and in the developer's own browser ask them to reload their tab.
 
-Return a concise report with:
+Return a concise report with the absolute path of the screenshot folder at the top, and:
 
 ### Summary
 
@@ -90,7 +93,7 @@ List the environment, role, pages, workflows, and objects created.
 
 ### Working
 
-List completed user journeys without narrating every click.
+List completed user journeys without narrating every click, each with the file names of its screenshots.
 
 ### Missing or broken
 
@@ -100,7 +103,7 @@ For each finding include:
 - short reproduction path;
 - observed result;
 - expected user-facing result or practical impact;
-- severity, and the screenshot when one was taken.
+- severity and the screenshot file name.
 
 Order findings by severity, blockers first.
 
