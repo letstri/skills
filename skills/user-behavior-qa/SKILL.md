@@ -1,112 +1,85 @@
 ---
 name: user-behavior-qa
-description: Tests the running app through its visible browser UI as a real user (journeys, states, validation, keyboard) and reports what works, what's broken and what went untested, without reading implementation code. Use when asked to QA, test, smoke-test or click through a feature or the app, or to check a change works for a user. Works in any repo.
+description: Tests the running app through its visible browser UI as a real user (journeys, states, validation, keyboard, visibly broken layout, consistency with the project's design) and reports what works, what's broken and what went untested, without reading implementation code. Use when asked to QA, test, smoke-test or click through a feature or the app, or to check a change works for a user. Works in any repo.
 ---
 
 # User Behavior QA
 
-Review the product from the user's side. Treat the browser as the product boundary: use visible controls, navigation, forms, feedback, and persisted results. Do not inspect source code, internal APIs, database clients, server logs, or implementation details unless the user explicitly expands the scope. The browser console is fair evidence (see §4).
+Test the product from the user's side; the browser is the boundary. Don't inspect source, internal APIs, DB clients, server logs or implementation unless the user expands the scope. Console errors are fair evidence (§4).
 
 ## 1. Intake
 
-Before the first browser action, read what the repo says about running and opening the app (`AGENTS.md` / `CLAUDE.md` and the rule files they index, the README) and its domain or user docs for the area in scope. They give the dev URL, the product terms to use in the report, and which gaps are deliberate.
+Before any browser action, read how the repo runs and opens the app (`AGENTS.md` / `CLAUDE.md` and the rule files they index, README) and its domain, user and design docs (style guide, design system, mockup links) for the scope. They give the dev URL, the product terms for the report, the design to compare against, and the deliberate gaps.
 
-Defaults, unless the developer or the repo docs say otherwise:
+Defaults, unless the developer or the docs say otherwise:
 
-- **Target:** the local dev URL, the worktree's own when testing a branch.
-- **Mutations:** create, edit and delete test data on local dev. Any other environment, or an unclear one, is read-only.
-- **Screenshots:** every run saves them as files into one folder, `~/qa-screenshots/<repo>-<branch or feature>-<YYYY-MM-DD>/`, created before the first browser action. A rerun on the same day adds a `-2`, `-3` suffix instead of overwriting.
+- **Target:** the local dev URL, the worktree's own for a branch. If nothing runs there, start it with the documented command, or ask when there is none.
+- **Mutations:** create, edit and delete test data on local dev. Any other or unclear environment is read-only until the developer explicitly allows mutations.
+- **Screenshots:** saved as files in `.qa/<YYYY-MM-DD>/` at the root of the checkout under test (the worktree's own for a branch), or in the working directory outside git; a same-day rerun adds `-2`, `-3`. Before creating it, add `.qa/` to the file `git rev-parse --git-path info/exclude` prints, if missing, so screenshots are never committed and `.gitignore` stays untouched.
 
-Then send **one message** with every open question, and wait for the answer before the first browser action:
+Then send **one message** with every open question and wait for the answer:
 
-- **Browser**, every run, unless the developer named one in this request. Offer only the browsers this session can actually drive, each with its trade-off, including whether it can save a screenshot to a file: the developer's own browser (their sign-ins, but it shares storage with their tabs), a built-in or embedded browser, or a separate automation browser (isolated and signed out). Repo docs that recommend a browser make it the suggested option, not the answer. Never pick one silently.
-- **Sign-in**, when the app or its docs show it needs one and the chosen browser is not already signed in: the developer signs in themselves in the opened tab and says when done, or gives you credentials (ideally a test account) that you enter in the sign-in form.
-- **Scope**, only what the request leaves open: the pages, workflows, entities, variants (platforms, engines, plans) and roles in scope, and the expected behavior or baseline.
+- **Browser**, every run unless the request names one. Offer only browsers this session can drive, each with its trade-off and whether it saves screenshots to a file: the developer's own (their sign-ins, shared storage with their tabs), a built-in or embedded one, or a separate automation browser (isolated, signed out). A docs recommendation is the suggested option, not the answer. Never pick silently.
+- **Sign-in**, when the app needs it and the chosen browser isn't signed in: the developer signs in in the opened tab and says when done, or gives credentials (ideally a test account) that you enter in the sign-in form.
+- **Scope**, only what the request leaves open: pages, workflows, entities, variants (platforms, engines, plans), roles, expected behavior or baseline, and a mockup or design reference when the docs give none.
 
-If a sign-in wall appears that intake did not foresee, stop and ask the sign-in question then. Once answered, state the test charter in one sentence and start.
+An unforeseen sign-in wall: stop and ask then. Once answered, state the test charter in one sentence and start.
 
 ## 2. Operate like a user
 
-- Stay inside the product UI. A built-in query editor or admin screen is allowed because it is part of the user experience.
-- Use ordinary clicks, typing, keyboard navigation, and visible menus. Never call internal endpoints, inject application state, edit storage, or mutate the DOM to manufacture a result.
-- Use browser evaluation only to read the rendered page or activate the same visible control when normal browser references fail.
-- Use a recognizable test prefix such as `qa_<feature>_<purpose>` and record every artifact created.
-- Enter only credentials the user gave you for this run, only into the target app's own sign-in form. Never guess, reuse or look up credentials, and never write them into the report or test artifacts.
-- Treat production or unclear environments as read-only until the developer explicitly allows mutations.
-- Continue past isolated failures when another path remains testable. Do not repair the application during the review.
+- Stay inside the product UI; a built-in query editor or admin screen counts. Use ordinary clicks, typing, keyboard and visible menus. Never call internal endpoints, inject state, edit storage or mutate the DOM to manufacture a result. Use browser evaluation only to read the rendered page or to activate a visible control when normal references fail.
+- Prefix test data recognizably, e.g. `qa_<feature>_<purpose>`, and record every artifact created.
+- Enter only credentials given for this run, only into the app's own sign-in form. Never guess, reuse or look them up, or write them into the report or artifacts.
+- Continue past isolated failures when another path remains. Don't repair the app.
 
 ## 3. Exercise the scoped journey
 
-Discover available surfaces from the UI itself. For every page or workflow in scope, test the applicable path end to end:
+Discover surfaces from the UI. For every page or workflow in scope, end to end where applicable:
 
-1. Open it through normal navigation and, when useful, its direct URL.
-2. Check loading, empty, populated, and unsupported states that naturally occur.
-3. Create a safe representative object or record. Cover meaningful subtypes when one form creates materially different objects.
-4. Exercise required-field validation and one realistic server error that is safe to trigger, such as a duplicate name or a wrong type. Never run a destructive action against shared environments.
-5. Verify success feedback, count, list row, displayed values, search, filters, and refresh persistence.
-6. Open the created item and verify the detail or edit view reflects what was submitted.
-7. Test visible lifecycle actions such as edit, enable or disable, revoke, and delete when offered.
-8. Check labels, instructions, default values, disabled and loading states, focus, keyboard use, and accessible names while following the journey.
-9. Screenshot every verified outcome as you reach it: each state, the success feedback, the created row, the detail view, each lifecycle result. A step counts as working only with its screenshot in the folder.
+1. Open it through navigation and, when useful, its direct URL.
+2. Check the loading, empty, populated and unsupported states that naturally occur.
+3. Create a safe representative record; cover subtypes when one form creates materially different objects.
+4. Exercise required-field validation and one realistic server error that is safe to trigger (duplicate name, wrong type). Never run a destructive action on a shared environment.
+5. Verify success feedback, count, list row, displayed values, search, filters and persistence after refresh.
+6. Open the created item and check the detail or edit view reflects what was submitted.
+7. Test visible lifecycle actions: edit, enable or disable, revoke, delete.
+8. Along the way, check labels, instructions, defaults, disabled and loading states, focus, keyboard use and accessible names.
+9. **Broken UI.** Inspect every screenshot at the default viewport, once at a narrow width (~1024px, or 375px if the app supports mobile) and in the dark theme if offered, for: overlapping elements; a popup or dropdown clipped or behind another layer; text cut off without ellipsis or tooltip; a number or date wrapped mid-value; raw keys, `undefined`, `null`, `NaN`, `[object Object]` or unformatted values; page-level horizontal scroll; a table or card spilling out of its container; an unreadably narrow column; a missing icon or image; unstyled content; text unreadable against its background; layout jumping between loading and loaded; a spinner that never ends. Confirm overflow from the rendered page (`scrollWidth > clientWidth`), never from the picture. Report only what a user would call broken, not taste.
+10. **Design.** Compare with the mockup or design docs when present, and always with two or three established pages of the same app showing the same kind of element. Report concrete deviations, each naming the reference it breaks: a button, table, filter, badge, field, modal, empty state or pagination that looks or behaves unlike its counterpart; differing colors, fonts, sizes, icons or spacing; a status color that means something else elsewhere; dates, numbers, currency, capitalization, tone or language of copy unlike the rest of the app. No reference, no finding. Screenshot the reference next to the deviation.
+11. Screenshot every verified outcome as you reach it: each state, success feedback, created row, detail view, lifecycle result. A step counts as working only with its screenshot in the folder.
 
-Use the smallest starter state that unlocks the workflow. If one created record supports several tests, reuse it.
-
-A page is complete when every applicable step above has either been observed or recorded as untestable with the visible reason.
+Use the smallest starter state and reuse a record across tests. A page is complete when every applicable step is observed or recorded as untestable with the visible reason.
 
 ## 4. Evidence rules
 
-- Report only what was observed through the UI. A browser console error seen during the journey can support a finding. Label it as console evidence and do not guess the cause from it.
-- Before reporting that a control does not respond or an animation is stuck, rule out the browser traps below.
-- A gap the repo's docs describe as deliberate is not a finding.
+- Report only what the UI showed. A console error seen during the journey can support a finding: label it console evidence. Never infer implementation causes, from the console or otherwise.
+- Before calling a control unresponsive or an animation stuck, rule out the browser traps below.
+- A gap the docs call deliberate is not a finding. A platform- or vendor-native limitation is not an app defect: state it and its effect.
 - Quote exact labels and errors when they identify the problem.
-- **Screenshots go to the run folder from §1, nowhere else.** Name them in journey order, `NN-<page>-<what it shows>.png` for a working step and `NN-<page>-broken-<what>.png` for a broken one, e.g. `03-cashbacks-filter-by-status.png`. Save through the browser tool's own file option; if it only returns the image inline, save it with an OS screenshot of the browser window. A step whose screenshot could not be saved is reported as such, not silently skipped.
-- Never screenshot a typed password or other secret. Screenshots are kept after the run; they are not test artifacts to clean up.
-- Separate defects, missing capabilities, intentional unsupported states, and untested paths.
-- Do not infer implementation causes.
-- Do not label a platform- or vendor-native limitation as an application defect. State the visible limitation and its effect.
-- Preserve useful test artifacts unless cleanup was requested. Always list the `qa_*` artifacts left behind, and name any that cannot be removed through the UI.
+- **Screenshots go only to the §1 folder**, in journey order: `NN-<page>-<what it shows>.png`, or `NN-<page>-broken-<what>.png` for a broken step, e.g. `03-orders-filter-by-status.png`. Save through the browser tool's file option, else an OS screenshot of the browser window. Report a step whose screenshot couldn't be saved; never skip it silently.
+- A visual finding states its viewport width and theme and its screenshot shows the broken spot. A design finding also names its reference (mockup, doc section or page) and the reference's screenshot.
+- Never screenshot a typed password or other secret. Screenshots are kept; they aren't artifacts to clean up.
+- Separate defects, missing capabilities, intentional unsupported states and untested paths.
+- Keep test artifacts unless cleanup was requested. Always list the `qa_*` ones left, naming any the UI can't remove.
 
-**Browser traps.** Each one looks like an app bug and is not:
+**Browser traps** — each looks like an app bug and isn't:
 
-- **Any browser: the dev server reloads mid-session.** A first-time chunk load can make the bundler re-optimize dependencies and crash or reload the page. Navigate to the same URL once and continue; report it only if it repeats.
-- **The developer's own browser: a background tab is frozen.** An automated tab behind another window has `visibilityState: hidden`: `requestAnimationFrame` never runs, so animations and transitions stop mid-way, rAF-scheduled popups stay shut, and global hotkeys do nothing. Check the tab's visibility before calling a control broken.
-- **The developer's own browser: storage is shared with their tabs.** Preferences changed in the automated tab (pane sizes, theme, filters) change theirs on the same origin.
-- **An isolated browser: it starts signed out and empty.** A missing preference, onboarding screen or empty list may be the fresh profile, not a regression.
+- **Any browser: dev server reloads mid-session.** A first-time chunk load can make the bundler re-optimize dependencies and crash or reload the page. Reopen the same URL once; report it only if it repeats.
+- **Developer's browser: background tab is frozen.** A tab behind another window has `visibilityState: hidden`, so `requestAnimationFrame` never runs: animations stop mid-way, rAF-scheduled popups stay shut, global hotkeys do nothing. Check visibility first.
+- **Developer's browser: shared storage.** Preferences changed in the automated tab (pane sizes, theme, filters) change theirs on the same origin.
+- **Isolated browser: fresh profile.** A missing preference, onboarding screen or empty list may be the profile, not a regression.
 
 ## 5. Report
 
-Before writing it, wrap up: restore any preferences you changed, close the tabs you opened, and in the developer's own browser ask them to reload their tab.
+First wrap up: restore changed preferences, close the tabs you opened, and in the developer's browser ask them to reload their tab.
 
-Return a concise report with the absolute path of the screenshot folder at the top, and:
+Return a concise report with the screenshot folder's absolute path at the top, then these sections:
 
-### Summary
-
-One line of counts: journeys tested, working, broken, untested; then findings by severity.
-
-- **Blocker**: the journey cannot be completed.
-- **Major**: the journey completes, but a step is wrong, lost or misleading.
-- **Minor**: wording, layout, focus or polish that does not change the outcome.
-
-### Tested
-
-List the environment, role, pages, workflows, and objects created.
-
-### Working
-
-List completed user journeys without narrating every click, each with the file names of its screenshots.
-
-### Missing or broken
-
-For each finding include:
-
-- page or workflow;
-- short reproduction path;
-- observed result;
-- expected user-facing result or practical impact;
-- severity and the screenshot file name.
-
-Order findings by severity, blockers first.
-
-### Untested and cleanup
-
-List blocked paths, their visible blockers, and any test artifacts left behind.
+- **Summary:** one line of counts (journeys tested, working, broken, untested), then findings by severity:
+  - **Blocker**: the journey can't be completed.
+  - **Major**: it completes, but a step is wrong, lost or misleading; broken layout hides, covers or garbles data or a control; or a design deviation misleads (a status color that means the opposite elsewhere).
+  - **Minor**: wording, layout, design deviation, focus or polish that changes no outcome and hides nothing.
+- **Tested:** environment, role, pages, workflows, objects created.
+- **Working:** completed journeys without click narration, each with its screenshot file names.
+- **Missing or broken**, blockers first, each with: page or workflow, short reproduction, observed result, expected result or practical impact, severity, screenshot file name.
+- **Untested and cleanup:** blocked paths with their visible blockers, and test artifacts left behind.
