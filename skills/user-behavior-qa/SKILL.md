@@ -15,11 +15,13 @@ Defaults, unless the developer or the docs say otherwise:
 
 - **Target:** the local dev URL, the worktree's own for a branch. If nothing runs there, start it with the documented command, or ask when there is none.
 - **Mutations:** create, edit and delete test data on local dev. Any other or unclear environment is read-only until the developer explicitly allows mutations.
-- **Screenshots:** saved as files in `.qa/<YYYY-MM-DD>/` at the root of the checkout under test (the worktree's own for a branch), or in the working directory outside git; a same-day rerun adds `-2`, `-3`. Before creating it, add `.qa/` to the file `git rev-parse --git-path info/exclude` prints, if missing, so screenshots are never committed and `.gitignore` stays untouched.
+- **Screenshots:** unless the developer chose none, saved as files in a folder of their own per run, `.qa/<YYYY-MM-DD>-<HHMM>-<slug>/`, at the root of the checkout under test (the worktree's own for a branch), or in the working directory outside git. `<slug>` is two to four kebab-case words naming the scope, e.g. `.qa/2026-10-21-1430-orders-create/`, so parallel runs never share a folder and its name tells what was tested; add `-2` only if the name is taken. Before creating it, add `.qa/` to the file `git rev-parse --git-path info/exclude` prints, if missing, so screenshots are never committed and `.gitignore` stays untouched.
+- **Rerun:** an earlier `.qa/` folder with the same slug, or one the developer names, makes this run a rerun of the latest such folder. Re-test each of its `broken/` findings first, then the rest of the scope.
 
 Then send **one message** with every open question and wait for the answer:
 
 - **Browser**, every run unless the request names one. Offer only browsers this session can drive, each with its trade-off and whether it saves screenshots to a file: the developer's own (their sign-ins, shared storage with their tabs), a built-in or embedded one, or a separate automation browser (isolated, signed out). A docs recommendation is the suggested option, not the answer. Never pick silently.
+- **Screenshots**, every run unless the request says: of working steps and findings, of findings only, or none. None saves no files and creates no folder; you still look at screenshots to test, and each finding quotes the exact text and location seen instead of citing a file.
 - **Sign-in**, when the app needs it and the chosen browser isn't signed in: the developer signs in in the opened tab and says when done, or gives credentials (ideally a test account) that you enter in the sign-in form.
 - **Scope**, only what the request leaves open: pages, workflows, entities, variants (platforms, engines, plans), roles, expected behavior or baseline, and a mockup or design reference when the docs give none.
 
@@ -46,7 +48,7 @@ Discover surfaces from the UI. For every page or workflow in scope, end to end w
 8. Along the way, check labels, instructions, defaults, disabled and loading states, focus, keyboard use and accessible names.
 9. **Broken UI.** Inspect every screenshot at the default viewport, once at a narrow width (~1024px, or 375px if the app supports mobile) and in the dark theme if offered, for: overlapping elements; a popup or dropdown clipped or behind another layer; text cut off without ellipsis or tooltip; a number or date wrapped mid-value; raw keys, `undefined`, `null`, `NaN`, `[object Object]` or unformatted values; page-level horizontal scroll; a table or card spilling out of its container; an unreadably narrow column; a missing icon or image; unstyled content; text unreadable against its background; layout jumping between loading and loaded; a spinner that never ends. Confirm overflow from the rendered page (`scrollWidth > clientWidth`), never from the picture. Report only what a user would call broken, not taste.
 10. **Design.** Compare with the mockup or design docs when present, and always with two or three established pages of the same app showing the same kind of element. Report concrete deviations, each naming the reference it breaks: a button, table, filter, badge, field, modal, empty state or pagination that looks or behaves unlike its counterpart; differing colors, fonts, sizes, icons or spacing; a status color that means something else elsewhere; dates, numbers, currency, capitalization, tone or language of copy unlike the rest of the app. No reference, no finding. Screenshot the reference next to the deviation.
-11. Screenshot every verified outcome as you reach it: each state, success feedback, created row, detail view, lifecycle result. A step counts as working only with its screenshot in `working/`.
+11. When the developer chose working screenshots, screenshot every verified outcome as you reach it: each state, success feedback, created row, detail view, lifecycle result; a step then counts as working only with its screenshot in `working/`. With findings only, a step counts as working once observed.
 
 Use the smallest starter state and reuse a record across tests. A page is complete when every applicable step is observed or recorded as untestable with the visible reason.
 
@@ -56,7 +58,7 @@ Use the smallest starter state and reuse a record across tests. A page is comple
 - Before calling a control unresponsive or an animation stuck, rule out the browser traps below.
 - A gap the docs call deliberate is not a finding. A platform- or vendor-native limitation is not an app defect: state it and its effect.
 - Quote exact labels and errors when they identify the problem.
-- **Screenshots go only to the §1 folder**, sorted into two subfolders: `working/` for verified working steps and `broken/` for findings. Name them `NN-<page>-<what it shows>.png`, numbered in journey order across both; in `broken/`, prefix the kind after the number: `logic` for a functional defect (a step fails, data is wrong or lost, an error appears), `ui` for a broken-UI or design finding (§3 steps 9–10, its reference screenshot included). A shot showing both is `logic`. Cite them in the report by relative path, e.g. `working/03-orders-filter-by-status.png`, `broken/04-logic-orders-save-fails.png`, `broken/05-ui-orders-table-overflow.png`. Save through the browser tool's file option, else an OS screenshot of the browser window. Report a step whose screenshot couldn't be saved; never skip it silently.
+- **Screenshots go only to the §1 folder**, sorted into subfolders: `working/` for verified working steps (only when chosen), `broken/` for findings, and on a rerun `fixed/` for the previous run's findings that now work, saved unless none was chosen and named after the previous run's file, e.g. `fixed/04-logic-orders-save-fails.png`. A previous finding still broken gets a new `broken/` shot as usual. Name them `NN-<page>-<what it shows>.png`, numbered in journey order across both; in `broken/`, prefix the kind after the number: `logic` for a functional defect (a step fails, data is wrong or lost, an error appears), `ui` for a broken-UI or design finding (§3 steps 9–10, its reference screenshot included). A shot showing both is `logic`. Cite them in the report by relative path, e.g. `working/03-orders-filter-by-status.png`, `broken/04-logic-orders-save-fails.png`, `broken/05-ui-orders-table-overflow.png`. Save through the browser tool's file option, else an OS screenshot of the browser window. Report a step whose screenshot couldn't be saved; never skip it silently.
 - A visual finding states its viewport width and theme and its screenshot shows the broken spot. A design finding also names its reference (mockup, doc section or page) and the reference's screenshot.
 - Never screenshot a typed password or other secret. Screenshots are kept; they aren't artifacts to clean up.
 - Separate defects, missing capabilities, intentional unsupported states and untested paths.
@@ -73,13 +75,14 @@ Use the smallest starter state and reuse a record across tests. A page is comple
 
 First wrap up: restore changed preferences, close the tabs you opened, and in the developer's browser ask them to reload their tab.
 
-Return a concise report with the screenshot folder's absolute path at the top, then these sections:
+Return a concise report with the screenshot folder's absolute path at the top when one was made, then these sections:
 
-- **Summary:** one line of counts (journeys tested, working, broken, untested), then findings by severity:
+- **Summary:** one line of counts (journeys tested, working, broken, untested, and on a rerun fixed), then findings by severity:
   - **Blocker**: the journey can't be completed.
   - **Major**: it completes, but a step is wrong, lost or misleading; broken layout hides, covers or garbles data or a control; or a design deviation misleads (a status color that means the opposite elsewhere).
   - **Minor**: wording, layout, design deviation, focus or polish that changes no outcome and hides nothing.
 - **Tested:** environment, role, pages, workflows, objects created.
-- **Working:** completed journeys without click narration, each with its screenshot file names.
-- **Missing or broken**, blockers first, each with: page or workflow, short reproduction, observed result, expected result or practical impact, severity, screenshot path.
+- **Fixed**, on a rerun: each previous finding now working, with its old and new screenshot paths (new only when saved). Previous findings still broken are listed under Missing or broken, marked "still broken" with the old path.
+- **Working:** completed journeys without click narration, each with its screenshot file names when saved.
+- **Missing or broken**, blockers first, each with: page or workflow, short reproduction, observed result, expected result or practical impact, severity, screenshot path when saved.
 - **Untested and cleanup:** blocked paths with their visible blockers, and test artifacts left behind.
