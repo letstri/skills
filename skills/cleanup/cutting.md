@@ -4,23 +4,25 @@ The procedure for shrinking a set of files without changing behaviour. The coord
 
 ## Inputs
 
-- The base, the files in scope, and the inventory (concern → owner).
+- The base, the files in scope, and the inventory (concern → owner, installed dependencies included).
 - The tool findings for these files.
 - The project's rule files that apply, and the behaviour ledger lines for these files.
 
 Read every file in scope whole before the first edit.
 
-## 1. Replace with what exists
+## 1. Replace hand-rolled code
 
-Walk every hand-written mechanism (an effect, loop, parser, state sync, cache, retry, listener, formatter, validation, cast, conditional styling, block of markup) and ask what already owns it, in this order:
+The largest wins live here, so hunt rather than skim. Walk every hand-rolled mechanism (an effect, loop, parser, state sync, cache, retry, debounce, listener, formatter, date or number math, validation, deep comparison, cast, conditional styling, block of markup) and ask what already owns it, in this order:
 
 1. A language or runtime built-in.
 2. The project's own helper.
 3. A shared component, or a new variant on it. A call site restyling a shared component's surface means the component lacks a variant: add the variant where the component lives, and the call site keeps layout only. If the project uses a component registry, search it before writing markup.
-4. An option or helper of an installed dependency.
-5. A well-known format or algorithm with no dependency yet: name a package in the report. Adding one is the user's call.
+4. An installed dependency, whether or not these files import it yet: look up its installed API for the helper or option that does the job.
+5. A package that is not a direct dependency of this workspace: a **candidate package**. Raise one when it replaces a mechanism with edge cases of its own (date math, parsing, deep comparison, retries, validation schemas, virtualised lists, accessibility primitives) or several copies of one; a few-line helper stays hand-rolled. Record the package, the code it replaces with its line count, and its cost (a new dependency, its install size, the lowest runtime it needs), and leave the code as it is: the coordinator asks the user.
 
 **The owner must do the same thing.** Check its edge cases (empty input, rounding, locale, ordering, the error it raises) and the lowest version it needs against the ledger before swapping.
+
+The step is done when every hand-rolled mechanism in scope is swapped for an owner, recorded as a candidate package, or noted with the reason it stays.
 
 ## 2. Delete
 

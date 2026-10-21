@@ -1,6 +1,6 @@
 ---
 name: cleanup
-description: Shrinks the current branch's diff without changing behaviour. Reuses what the stack already provides, deletes dead code and indirection, splits files by subject, strips non-warning comments, and ends with a summary of what was optimized. Use when asked to clean up, simplify, shrink or tidy a branch, diff or PR before review or merge. Not a bug hunt or a code review; it only makes the same behaviour smaller. Works in any repo.
+description: Shrinks the current branch's diff without changing behaviour. Swaps hand-rolled code for what the stack and its installed libraries already provide, proposes packages that would replace more, deletes dead code and indirection, splits files by subject, strips non-warning comments, and ends with a summary of what was optimized. Use when asked to clean up, simplify, shrink or tidy a branch, diff or PR before review or merge. Not a bug hunt or a code review; it only makes the same behaviour smaller. Works in any repo.
 ---
 
 # Cleanup
@@ -33,9 +33,9 @@ The work runs in three phases: **Prepare** what may be cut, **Cut** it by follow
 Code is only shorter if you know what you may reuse. Build an **inventory**, one line per concern and its owner, before cutting anything:
 
 - **The project's own stack map**, if its rules have one. It is the starting inventory and outranks anything discovered.
-- **Dependencies per workspace**: what each workspace containing a changed file declares. Only those resolve in that file; a sibling workspace's dependency is a proposal, not a reuse.
+- **Dependencies per workspace**: what each workspace containing a changed file declares, each with the concerns it owns (dates, validation, requests, forms, collections, styling, accessibility primitives). Only those resolve in that file; a sibling workspace's or a transitive dependency is a candidate package, not a reuse.
 - **The project's own toolbox**: its shared utilities, hooks, services and UI components with their variants, by name, not just by location.
-- **Options of what the diff already uses**: for each dependency the changed files import, read the **installed** version's types or docs for options and helpers that replace surrounding code, and note the lowest runtime or platform version each one needs. Memory describes some other version.
+- **Options of installed dependencies**: for each declared dependency whose concern the diff touches, imported by the changed files or not, read the **installed** version's types or docs for options and helpers that replace hand-rolled code, and note the lowest runtime or platform version each one needs. Memory describes some other version.
 
 ### Scan
 
@@ -52,7 +52,7 @@ Their output is a list of leads, never verdicts. Keep only findings in changed f
 
 ### Triage
 
-Partition the changed files into **disjoint** groups by module; a file travels with its tests and styles. Skim each group and rate its potential from the scan leads and a quick read: *high* (leads, hand-written mechanisms the inventory owns, files with several subjects) or *low* (wiring the types demand, per-variant data, generated or moved code). Generated files, lockfiles and pure moves are out of scope.
+Partition the changed files into **disjoint** groups by module; a file travels with its tests and styles. Skim each group and rate its potential from the scan leads and a quick read: *high* (leads, hand-rolled mechanisms the inventory owns, files with several subjects) or *low* (wiring the types demand, per-variant data, generated or moved code). Generated files, lockfiles and pure moves are out of scope.
 
 ### Who cuts
 
@@ -63,12 +63,16 @@ Each subagent's brief carries only: the base, its file list, the inventory, its 
 
 - Edit only your files. A change needed elsewhere (a shared helper, a missing component variant, a caller in another module, a cross-module duplicate) goes in the report.
 - No repo-wide autofix or formatters. Check only your files and ignore errors in others; they are mid-edit.
-- No commits, stashes or resets.
-- Report the counts and lists that the **Report** section below asks for, for your files, plus cross-module findings.
+- No commits, stashes, resets or installs: a candidate package goes in the report.
+- Report the counts and lists that the **Report** section below asks for, for your files, plus cross-module findings and candidate packages.
 
 ### Merge
 
 When all return: act on the cross-module findings, hand-review any file two agents touched, and check every agent's cut against the ledger and the traps in [cutting.md](cutting.md) yourself. "No behaviour change" in a report is a claim, not a result. Then run the cutting checklist once more over the whole diff, since cuts in one group open deletions in another.
+
+### Propose packages
+
+If cutting found candidate packages, ask the user once, all candidates together, each with the code it replaces, the lines it saves and its cost. Install each approved package with the project's package manager into the workspace that needs it, swap it in by step 1 of [cutting.md](cutting.md), and run the checklist again over those files. A declined or unanswered candidate goes in the report as proposed.
 
 ## Prove
 
@@ -95,14 +99,14 @@ Open with a table of the size change and keep every row, writing 0 where nothing
 Follow it with one line of counts. Each change counts once, under the first category that fits:
 
 1. **Bugs fixed**: a cut that changed behaviour because the old behaviour was wrong.
-2. **Replaced**: hand-written code swapped for an owner from the inventory.
+2. **Replaced**: hand-rolled code swapped for an owner from the inventory or an approved package.
 3. **Restructured**: a shape change (lookup table, merged functions, object parameter).
 4. **Split**: a subject moved to its own file.
 5. **Deleted**: code removed with nothing in its place, inlining included.
 6. **Comments removed**.
 7. **Tests removed or merged**.
 8. **Reverted**: attempts undone because they failed a check or did not shrink the diff.
-9. **Proposed**: changes left for the user (a package, an out-of-scope file).
+9. **Proposed**: changes left for the user (a declined or unanswered candidate package, an out-of-scope file).
 10. **Left alone**: findings examined and kept.
 
 Then:
@@ -115,7 +119,7 @@ Then:
 ### Details
 
 - **Bugs fixed**, each with its failure scenario.
-- **Replaced**: what, and which owner replaced it.
+- **Replaced**: what, and which owner replaced it, marking packages installed in this run.
 - **Restructured**, **split** and **deleted**: what, one line each.
-- **Proposed, not done**: location and expected saving.
+- **Proposed, not done**: location, the package or change, and expected saving.
 - **Left alone and why**: every kept piece that looks like cruft, and every dismissed scan lead in a changed file, one line each, so the next pass does not re-argue it.
